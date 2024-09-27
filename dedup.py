@@ -15,7 +15,7 @@ files = os.listdir(from_dir)
 files.sort()
 fac = 100 / len(files)
 
-contents = defaultdict(list) # by len
+seenNormalized = defaultdict(list) # by len
 duplicates = 0
 skipped = 0
 prev_percent = -1
@@ -29,15 +29,15 @@ for i, file_name in enumerate(files):
     lines = content.split('\n')
 
     # убираем хештеги с обоих концов поста
-    start = 0
+    begin = 0
     end = 0
-    for j in range(start, len(lines)):
+    for j in range(begin, len(lines)):
         if not lines[j].startswith('#'):
             lines[j] = lines[j].strip()
             if lines[j] == '':
                 continue
 
-            start = j
+            begin = j
             end = len(lines)
             for k in range(end-1, j, -1):
                 lines[k] = lines[k].strip()
@@ -47,20 +47,20 @@ for i, file_name in enumerate(files):
 
             break
 
-    content = '\n'.join(map(lambda l: l.strip(), lines[start:end]))
+    normalized = ''.join(map(lambda l: l.strip(), lines[begin:end]))
 
-    if content.endswith('\n'):
+    if normalized.endswith('\n'):
         raise RuntimeError('EOL at EOF:')
 
-    if len(content) == 0:
+    if len(normalized) == 0:
         skipped = skipped + 1
         if skipped % 50 == 0:
             print(f'skipped {skipped}')
         continue
 
-    cts = contents[len(content)]
-    if content not in cts:
-        cts.append(content)
+    cts = seenNormalized[len(normalized)]
+    if normalized not in cts:
+        cts.append(normalized)
         to_file_path = os.path.join(to_dir, file_name)
         with open(to_file_path, "w", encoding='utf-8') as file:
             file.write(content)
